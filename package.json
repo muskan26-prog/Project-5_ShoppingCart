@@ -1,0 +1,19 @@
+{
+  "name": "products-management",
+  "version": "1.0.0",
+  "description": "projet by functionUp product-Management",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FDgajju/Products-Management.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FDgajju/Products-Management/issues"
+  },
+  "homepage": "https://github.com/FDgajju/Products-Management#readme"
+}
