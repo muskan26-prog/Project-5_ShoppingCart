@@ -14,7 +14,7 @@ let isValidObjectId = function (ObjectId) {
     return mongoose.Types.ObjectId.isValid(ObjectId)
 }
 
-const isValidrequestBody = function (requestBody) {
+const isValidRequestBody = function (requestBody) {
     return Object.keys(requestBody).length !== 0
 }
 
@@ -32,4 +32,4 @@ let isValidEmail = function(email){
     }
 }
 
-module.exports = { isValidTitle, isValidrequestBody, isValid, isValidPhone, isValidObjectId, isValidEmail }
+module.exports = { isValidTitle, isValidRequestBody, isValid, isValidPhone, isValidObjectId, isValidEmail }
