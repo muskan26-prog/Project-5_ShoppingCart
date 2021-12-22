@@ -1,6 +1,6 @@
 let express = require('express');
 let bodyParser = require('body-parser');
-let multer = require('module');
+let multer = require('multer');
 let mongoose = require('mongoose');
 
 let route = require('./routes/route')
