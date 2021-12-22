@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(multer().any())
 
-mongoose.connect("")
+mongoose.connect("mongodb+srv://users-open-to-all:hiPassword123@cluster0.uh35t.mongodb.net/Group-15DataBase?retryWrites=true&w=majority")
 .then(() => console.log('mongodb running....'))
 .catch(err => console.log(err))
 
