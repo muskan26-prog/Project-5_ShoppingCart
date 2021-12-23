@@ -2,8 +2,7 @@ let userModel = require('../models/userModel');
 let validate = require('./validator');
 let bcryptjs = require('bcryptjs')
 
-//register user - localhost:3000/register ----------->
-
+//!register user - localhost:3000/register ----------->
 let registerUser = async function (req, res) {
 
     try {
@@ -82,6 +81,37 @@ let registerUser = async function (req, res) {
             return
         }
 
+        if(!validator.isValid(address.shipping)){
+            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid shipping address!!"})
+            return
+        }
+        if(!validator.isValid(address.shipping.street)){
+            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid street in shipping address!!"})
+            return
+        }
+        if(!validator.isValid(address.shipping.city)){
+            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid city in shipping address!!"})
+            return
+        }
+        if(!validator.isValid(address.shipping.pincode)){
+            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid pincode in shipping address!!"})
+            return
+        }
+        if(!validator.isValid(address.billing)){
+            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid billing address!!"})
+            return
+        }
+        if(!validator.isValid(address.billing.street)){
+            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid street in billing address!!"})
+            return
+        }
+        if(!validator.isValid(address.billing.city)){
+            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid city in billing address!!"})
+            return
+        }
+        if(!validator.isValid(address.billing.pincode)){
+            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid pincode in billing address!!"})
+        }
         //pasword encryption-------->
         let encryptPass = await bcryptjs.hash(password, 15)
         let saveData = {
@@ -101,8 +131,7 @@ let registerUser = async function (req, res) {
     }
 };
 
-//get user details 
-
+//!get user details // localhost:3000/user/:userId/profile------------>
 const getUser = async function (req, res) {
     try {
         let userId = req.params.userId
@@ -125,7 +154,7 @@ const getUser = async function (req, res) {
     }
 }
 
-//update user details 
+//!update user details  localhost:3000/user/:userId/profile----------->
 const updateUserDetailes = async function (req, res) {
 
     try {
@@ -155,6 +184,11 @@ const updateUserDetailes = async function (req, res) {
             if (!validate.isValid(email)) {
                 return res.status(400).send({ status: false, message: "email is required or check its key & value" })
             };
+
+            if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.trim()))) {
+                res.status(400).send({ status: false, message: `${email} is not a valid email` })
+                return
+            }
 
             if (!validate.isValid(profileImage)) {
                 return res.status(400).send({ status: false, message: "profileImage is required or check its key & value." })
@@ -201,7 +235,7 @@ const updateUserDetailes = async function (req, res) {
             email: email,
             profileImage: profileImage,
             phone: phone,
-            password: password ? encryptPass : "pasword must be updated" ,
+            password: password ? encryptPass : "pasword must be updated",
             address: address
         }, { new: true })
 
@@ -216,4 +250,57 @@ const updateUserDetailes = async function (req, res) {
     }
 }
 
-module.exports = { registerUser, getUser, updateUserDetailes };
+//!login user localhost:3000/user/:userId/profile-------->
+
+const login = async function (req, res) {
+    try {
+        const requestBody = req.body;
+        if (!validate.isValidRequestBody(requestBody)) {
+            return res.status(400).send({ status: false, message: 'Invalid request parameters. Please provide login details' })
+            return
+        }
+        // Extract params
+        const { email, password } = requestBody;
+        // Validation starts
+        if (!validate.isValid(email)) {
+            return res.status(400).send({ status: false, message: `Email is required` })
+        }
+
+        if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.trim()))) {
+            res.status(400).send({ status: false, message: `${email} is not a valid email` })
+            return
+        }
+
+        if (!validate.isValid(password)) {
+            return res.status(400).send({ status: false, message: `Password is required` })
+        }
+        // Validation ends
+        const user = await userModel.findOne({ email, password });
+        // const userId = user._id
+        
+        if (!user) {
+            return res.status(401).send({ status: false, message: `Invalid login credentials` });
+        }
+
+        const hash=user.password
+        bcryptjs.compare(requestBody.password, hash, function (err, result) {
+            if (err) {
+                console.log(err)
+            }
+            else {
+                console.log(result);
+            }
+        });
+        const token = await jwt.sign({ userId: user._id }, 'radium', {
+            expiresIn: "2h"
+        })
+        return res.status(200).send({ status: true, message: `User login successfull`, data: { userId: userId, token } });
+    } catch (error) {
+        return res.status(500).send({ status: false, message: error.message });
+    }
+}
+
+module.exports = { registerUser, getUser, updateUserDetailes, login };//login
+
+
+

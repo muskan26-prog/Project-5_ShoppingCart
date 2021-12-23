@@ -32,7 +32,7 @@ let uploadFile = async (file) => {
     });
 };
 
-let createBookCover = async function (req, res) {
+let createProfilePicture = async function (req, res) {
     try {
 
         let files = req.files;
