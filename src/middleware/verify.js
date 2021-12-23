@@ -1,12 +1,12 @@
 const jwt = require('jsonwebtoken');
-const authMiddleWare = async function (req, res, next) {
+const varifyUser = async function (req, res, next) {
     try {
         const token = req.headers['authorization'];
         if (!token) {
             res.status(403).send({ status: false, message: "Missing Authentication Token in req" })
             return
         }
-        const decoded = await jwt.verify(token, 'radium')
+        const decoded = jwt.verify(token, 'radium')
         if (!decoded) {
             res.status(403).send({ status: false, message: 'invalid Authentication token in request' })
             return
@@ -17,4 +17,4 @@ const authMiddleWare = async function (req, res, next) {
         res.status(500).send({ status: false, message: error.message })
     }
 }
-module.exports = { authMiddleWare }
+module.exports = { varifyUser }

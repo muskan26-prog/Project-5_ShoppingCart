@@ -2,7 +2,8 @@ let userModel = require('../models/userModel');
 let validate = require('./validator');
 let bcryptjs = require('bcryptjs')
 let jwt = require('jsonwebtoken')
-let awsCon = require('./awsController')
+let awsCon = require('./awsController');
+const { varifyUser } = require('../middleware/verify');
 
 //!register user - localhost:3000/register ----------->
 let registerUser = async function (req, res) {
@@ -45,6 +46,7 @@ let registerUser = async function (req, res) {
             return
         }
 
+        //todo ----------------
         // if (!validate.isValid(profileImage)) {
         //     res.status(400).send({ status: false, message: "profileImage is mendatory" })
         //     return
@@ -77,8 +79,6 @@ let registerUser = async function (req, res) {
             return
         }
 
-        //todo address.shipping.street || address.shipping.city || address.shipping.pincode || address.billing.street || address.billing.street || address.billing.pincode
-
         if (!validate.isValid(address)) {
             res.status(400).send({ status: false, message: "address field is required" })
             return
@@ -96,10 +96,10 @@ let registerUser = async function (req, res) {
             res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid city in shipping address!!" })
             return
         }
-        // if(!validate.isValid(address.shipping.pincode)){
-        //     res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid pincode in shipping address!!"})
-        //     return
-        // }
+        if (!validate.isValid(address.shipping.pincode)) {
+            res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid pincode in shipping address!!" })
+            return
+        }
         if (!validate.isValid(address.billing)) {
             res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid billing address!!" })
             return
@@ -112,9 +112,9 @@ let registerUser = async function (req, res) {
             res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid city in billing address!!" })
             return
         }
-        // if(!validate.isValid(address.billing.pincode)){
-        //     res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid pincode in billing address!!"})
-        // }
+        if (!validate.isValid(address.billing.pincode)) {
+            res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid pincode in billing address!!" })
+        }
 
         if (files && files.length > 0) {
             //upload to s3 and return true..incase of error in uploading this will goto catch block( as rejected promise)
@@ -132,7 +132,7 @@ let registerUser = async function (req, res) {
                 address
             };
             let createUser = await userModel.create(saveData);
-            res.status(201).send({ status: false, message: "user successfully registerd", data: createUser })
+            res.status(201).send({ status: true, message: "user successfully registerd", data: createUser })
         }
 
     } catch (error) {
@@ -144,6 +144,12 @@ let registerUser = async function (req, res) {
 const getUser = async function (req, res) {
     try {
         let userId = req.params.userId
+        let userToken = req.userId
+
+        if (userToken !== userId) {
+            res.status(400).send({ status: false, message: "authorization failed!" })
+            return
+        }
 
         if (!validate.isValidObjectId(userId)) {
             res.status(404).send({ status: false, message: `${userId} is not valid user id ` })
@@ -169,7 +175,14 @@ const updateUserDetailes = async function (req, res) {
     try {
         const reqParams = req.params.userId
         const requestUpdateBody = req.body
-        let files = req.file
+        let files = req.files
+        let userToken = req.userId
+
+        if (userToken !== reqParams) {
+            res.status(400).send({ status: false, message: "authorization failed!" })
+            return
+        }
+
 
         if (!validate.isValidObjectId(reqParams)) {
             return res.status(404).send({ status: false, message: "Invalid userId." })
@@ -181,16 +194,21 @@ const updateUserDetailes = async function (req, res) {
 
         const { fname, lname, email, profileImage, phone, password, address } = requestUpdateBody;
 
-        if (fname || lname || email || profileImage || phone || password || address) {
+        // if (fname || lname || email || profileImage || phone || password || address) {
 
+        if (fname) {
             if (!validate.isValid(fname)) {
                 return res.status(400).send({ status: false, message: "fname is required or check its key & value" })
             }
+        }
 
+        if (lname) {
             if (!validate.isValid(lname)) {
                 return res.status(400).send({ status: false, message: "lname is required or check its key & value." })
-            };
+            }
+        }
 
+        if (email) {
             if (!validate.isValid(email)) {
                 return res.status(400).send({ status: false, message: "email is required or check its key & value" })
             };
@@ -199,23 +217,35 @@ const updateUserDetailes = async function (req, res) {
                 res.status(400).send({ status: false, message: `${email} is not a valid email` })
                 return
             }
+        }
 
-            // if (!validate.isValid(profileImage)) {
-            //     return res.status(400).send({ status: false, message: "profileImage is required or check its key & value." })
-            // };
+        // if (!validate.isValid(profileImage)) {
+        //     return res.status(400).send({ status: false, message: "profileImage is required or check its key & value." })
+        // };
 
+        if (phone) {
             if (!validate.isValid(phone)) {
                 return res.status(400).send({ status: false, message: "phone is required or check its key & value." })
-            };
+            }
 
+            if (!validate.isValidPhone(phone)) {
+                return res.status(400).send({ status: false, message: "phone is required or check its key & value." })
+
+            }
+        }
+
+        if (password) {
             if (!validate.isValid(password)) {
                 return res.status(400).send({ status: false, message: "password is required or check its key & value." })
-            };
+            }
+        }
 
+        if (address) {
             if (!validate.isValid(address)) {
                 return res.status(400).send({ status: false, message: "address is required or check its key & value." })
-            };
+            }
         }
+        // }
 
         const searchUser = await userModel.findById({ _id: reqParams })
         if (!searchUser) {
@@ -296,7 +326,7 @@ const login = async function (req, res) {
             const token = jwt.sign({ userId: user._id }, 'radium', {
                 expiresIn: "2h"
             })
-            return res.status(200).send({ status: true, message: `User login successfull`, data: { userId: user._id, token } });
+            return res.status(200).send({ status: true, message: `User login successfull 😁🤟🏻`, data: { userId: user._id, token } });
         }
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message });

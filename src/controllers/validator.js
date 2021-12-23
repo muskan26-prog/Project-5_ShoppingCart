@@ -20,16 +20,20 @@ const isValidRequestBody = function (requestBody) {
 
 let isValidPhone = function (str) {
 
-    if (/^(1\s|1|)?((\(\d{3}\))|\d{3})(\-|\s)?(\d{3})(\-|\s)?(\d{4})$/.test(str)) {
+    if (/^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/.test(str)) {
         return true
     }
     return false
 }
 
-let isValidEmail = function(email){
-    if(!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.trim()))){
+let isValidEmail = function (email) {
+    if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.trim()))) {
         return true;
     }
 }
 
 module.exports = { isValidTitle, isValidRequestBody, isValid, isValidPhone, isValidObjectId, isValidEmail }
+
+
+// if (/^(1\s|1|)?((\(\d{3}\))|\d{3})(\-|\s)?(\d{3})(\-|\s)?(\d{4})$/.test(str)) {
+ // if (/^(?:(?:\+|0{0,2})91(\s*[\ -]\s*)?|[0]?)?[6789]\d{9}|(\d[ -]?){10}\d$/.test(str)) {
