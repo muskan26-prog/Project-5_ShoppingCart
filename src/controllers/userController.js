@@ -1,12 +1,15 @@
 let userModel = require('../models/userModel');
 let validate = require('./validator');
 let bcryptjs = require('bcryptjs')
+let jwt = require('jsonwebtoken')
+let awsCon = require('./awsController')
 
 //!register user - localhost:3000/register ----------->
 let registerUser = async function (req, res) {
 
     try {
-        let reqBody = req.body
+        let reqBody = req.body;
+        let files = req.files
 
         if (!validate.isValidRequestBody(reqBody)) {
             res.status(400).send({ status: false, message: "no user Details found" })
@@ -42,10 +45,10 @@ let registerUser = async function (req, res) {
             return
         }
 
-        if (!validate.isValid(profileImage)) {
-            res.status(400).send({ status: false, message: "profileImage is mendatory" })
-            return
-        }
+        // if (!validate.isValid(profileImage)) {
+        //     res.status(400).send({ status: false, message: "profileImage is mendatory" })
+        //     return
+        // }
 
         if (!validate.isValid(phone)) {
             res.status(400).send({ status: false, message: "phone field is not be empty" })
@@ -81,50 +84,56 @@ let registerUser = async function (req, res) {
             return
         }
 
-        if(!validator.isValid(address.shipping)){
-            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid shipping address!!"})
+        if (!validate.isValid(address.shipping)) {
+            res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid shipping address!!" })
             return
         }
-        if(!validator.isValid(address.shipping.street)){
-            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid street in shipping address!!"})
+        if (!validate.isValid(address.shipping.street)) {
+            res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid street in shipping address!!" })
             return
         }
-        if(!validator.isValid(address.shipping.city)){
-            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid city in shipping address!!"})
+        if (!validate.isValid(address.shipping.city)) {
+            res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid city in shipping address!!" })
             return
         }
-        if(!validator.isValid(address.shipping.pincode)){
-            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid pincode in shipping address!!"})
+        // if(!validate.isValid(address.shipping.pincode)){
+        //     res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid pincode in shipping address!!"})
+        //     return
+        // }
+        if (!validate.isValid(address.billing)) {
+            res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid billing address!!" })
             return
         }
-        if(!validator.isValid(address.billing)){
-            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid billing address!!"})
+        if (!validate.isValid(address.billing.street)) {
+            res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid street in billing address!!" })
             return
         }
-        if(!validator.isValid(address.billing.street)){
-            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid street in billing address!!"})
+        if (!validate.isValid(address.billing.city)) {
+            res.status(400).send({ status: false, msg: "Invalid request parameters. Please Provide valid city in billing address!!" })
             return
         }
-        if(!validator.isValid(address.billing.city)){
-            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid city in billing address!!"})
-            return
+        // if(!validate.isValid(address.billing.pincode)){
+        //     res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid pincode in billing address!!"})
+        // }
+
+        if (files && files.length > 0) {
+            //upload to s3 and return true..incase of error in uploading this will goto catch block( as rejected promise)
+            let uploadedFileURL = await awsCon.uploadFile(files[0]); // expect this function to take file as input and give url of uploaded file as output
+            // reqBody.profileImage = uploadedFileURL;
+            //pasword encryption-------->
+            let encryptPass = await bcryptjs.hash(password, 10)
+            let saveData = {
+                fname,
+                lname,
+                email,
+                profileImage: uploadedFileURL,
+                phone,
+                password: password ? encryptPass : "password is required",
+                address
+            };
+            let createUser = await userModel.create(saveData);
+            res.status(201).send({ status: false, message: "user successfully registerd", data: createUser })
         }
-        if(!validator.isValid(address.billing.pincode)){
-            res.status(400).send({status: false, msg: "Invalid request parameters. Please Provide valid pincode in billing address!!"})
-        }
-        //pasword encryption-------->
-        let encryptPass = await bcryptjs.hash(password, 15)
-        let saveData = {
-            fname,
-            lname,
-            email,
-            profileImage,
-            phone,
-            password: password ? encryptPass : "password is required",
-            address
-        };
-        let createUser = await userModel.create(saveData);
-        res.status(200).send({ status: false, message: "user successfully registerd", data: createUser })
 
     } catch (error) {
         res.status(500).send({ status: false, message: error.message })
@@ -160,6 +169,7 @@ const updateUserDetailes = async function (req, res) {
     try {
         const reqParams = req.params.userId
         const requestUpdateBody = req.body
+        let files = req.file
 
         if (!validate.isValidObjectId(reqParams)) {
             return res.status(404).send({ status: false, message: "Invalid userId." })
@@ -190,9 +200,9 @@ const updateUserDetailes = async function (req, res) {
                 return
             }
 
-            if (!validate.isValid(profileImage)) {
-                return res.status(400).send({ status: false, message: "profileImage is required or check its key & value." })
-            };
+            // if (!validate.isValid(profileImage)) {
+            //     return res.status(400).send({ status: false, message: "profileImage is required or check its key & value." })
+            // };
 
             if (!validate.isValid(phone)) {
                 return res.status(400).send({ status: false, message: "phone is required or check its key & value." })
@@ -226,24 +236,23 @@ const updateUserDetailes = async function (req, res) {
             return res.status(403).send({ status: false, message: `nothing to update ${phone} is already in use.` })
         }
 
-        // if (searchUser.isDeleted == false) {
+        if (files && files.length > 0) {
+            let uploadedFileURL = await awsCon.uploadFile(files[0]);
 
-        let encryptPass = await bcryptjs.hash(password, 10)
-        const updateDetails = await userModel.findOneAndUpdate({ _id: reqParams }, {
-            fname: fname,
-            lname: lname,
-            email: email,
-            profileImage: profileImage,
-            phone: phone,
-            password: password ? encryptPass : "pasword must be updated",
-            address: address
-        }, { new: true })
+            let encryptPass = await bcryptjs.hash(password, 10)
+            const updateDetails = await userModel.findOneAndUpdate({ _id: reqParams }, {
+                fname: fname,
+                lname: lname,
+                email: email,
+                profileImage: uploadedFileURL,
+                phone: phone,
+                password: password ? encryptPass : "pasword must be updated",
+                address: address
+            }, { new: true })
 
-        res.status(201).send({ status: true, message: "Successfully updated User details.", data: updateDetails })
+            res.status(201).send({ status: true, message: "Successfully updated User details.", data: updateDetails })
 
-        // } else {
-        //     return res.status(404).send({ status: false, message: "Unable to update details.User has been already deleted" })
-        // }
+        }
 
     } catch (err) {
         return res.status(500).send({ status: false, message: "Something went wrong", Error: err.message })
@@ -275,32 +284,26 @@ const login = async function (req, res) {
             return res.status(400).send({ status: false, message: `Password is required` })
         }
         // Validation ends
-        const user = await userModel.findOne({ email, password });
+        const user = await userModel.findOne({ email: email });
         // const userId = user._id
-        
+
         if (!user) {
             return res.status(401).send({ status: false, message: `Invalid login credentials` });
         }
 
-        const hash=user.password
-        bcryptjs.compare(requestBody.password, hash, function (err, result) {
-            if (err) {
-                console.log(err)
-            }
-            else {
-                console.log(result);
-            }
-        });
-        const token = await jwt.sign({ userId: user._id }, 'radium', {
-            expiresIn: "2h"
-        })
-        return res.status(200).send({ status: true, message: `User login successfull`, data: { userId: userId, token } });
+        let decPass = await bcryptjs.compare(password, user.password)
+        if (decPass) {
+            const token = jwt.sign({ userId: user._id }, 'radium', {
+                expiresIn: "2h"
+            })
+            return res.status(200).send({ status: true, message: `User login successfull`, data: { userId: user._id, token } });
+        }
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message });
     }
 }
 
-module.exports = { registerUser, getUser, updateUserDetailes, login };//login
+module.exports = { registerUser, getUser, updateUserDetailes, login };
 
 
 

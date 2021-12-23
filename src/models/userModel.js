@@ -19,7 +19,7 @@ let userSchema = new mongoose.Schema({
 
     profileImage: {
         type: String,
-        required: "profile image in mandatory"
+        required: "profile image is mandatory"
     }, // s3 link
 
     phone: {
