@@ -1,14 +1,15 @@
 const jwt = require('jsonwebtoken');
-const varifyUser = async function (req, res, next) {
+const varifyUser = async function(req, res, next) {
     try {
-        const token = req.headers['authorization'];
-        if (!token) {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader) {
             res.status(403).send({ status: false, message: "Missing Authentication Token in req" })
             return
         }
-        const decoded = jwt.verify(token, 'radium')
+        let bearerHeader = authHeader && authHeader.split(' ')[1]
+        const decoded = jwt.verify(bearerHeader, 'radium')
         if (!decoded) {
-            res.status(403).send({ status: false, message: 'invalid Authentication token in request' })
+            res.status(403).send({ status: false, message: 'invalid Authentication authHeader in request' })
             return
         }
         req.userId = decoded.userId;
