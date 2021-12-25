@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(multer().any())
 
 mongoose.connect("mongodb+srv://users-open-to-all:hiPassword123@cluster0.uh35t.mongodb.net/Group-15DataBase?retryWrites=true&w=majority")
-.then(() => console.log('mongodb running....'))
+.then(() => console.log(`mongodb running at ${new Date()}...`))
 .catch(err => console.log(err))
 
 app.use('/', route);

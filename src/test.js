@@ -6,7 +6,7 @@ const updateUser = async (req, res) => {
         let decodedUserId = req.userId
         if (!validator.isValidRequestBody(requestBody)) return res.status(400).send({ status: false, message: 'No paramateres passed. Book unmodified' })
 
-        const UserFound = await userModel.findOne({ _id: userId})
+        const UserFound = await userModel.findOne({ _id: userId })
         if (!UserFound) return res.status(404).send({ status: false, message: `User not found with given UserId` });
 
         if (!decodedUserId == userId) return res.status(400).send({ status: false, message: "userId in url param and in token is not same" });
@@ -46,3 +46,260 @@ const updateUser = async (req, res) => {
         res.status(500).send({ status: false, msg: err.message })
     }
 };
+
+
+
+const UpdateUser = async (req, res) => {
+
+    userId = req.params.userId;
+    const requestBody = req.body;
+    const profileImage = req.files
+    TokenDetail = req.user
+
+    if (!validator.isValidRequestBody(requestBody)) {
+        return res.status(400).send({ status: false, message: 'No paramateres passed. Book unmodified' })
+    }
+    const UserFound = await userModel.findOne({ _id: userId })
+
+
+    if (!UserFound) {
+        return res.status(404).send({ status: false, message: `User not found with given UserId` })
+    }
+    if (!TokenDetail === userId) {
+        res.status(400).send({ status: false, message: "userId in url param and in token is not same" })
+    }
+
+
+
+    var { fname, lname, email, phone, password } = requestBody
+
+    if (Object.prototype.hasOwnProperty.call(requestBody, 'email')) {
+        if (!(/^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/.test(requestBody.email))) {
+            res.status(400).send({ status: false, message: `Email should be a valid email address` })
+            return
+        };
+
+        const isEmailAlreadyUsed = await userModel.findOne({ email: requestBody.email });
+        if (isEmailAlreadyUsed) {
+            res.status(400).send({ status: false, message: `${requestBody.email} email address is already registered` })
+            return
+        };
+    }
+    // console.log(Object.prototype.hasOwnProperty.call(requestBody, 'password'))
+
+    if (Object.prototype.hasOwnProperty.call(requestBody, 'password')) {
+        requestBody.password = requestBody.password.trim();
+        if (!(requestBody.password.length > 7 && requestBody.password.length < 16)) {
+            res.status(400).send({ status: false, message: "password should  between 8 and 15 characters" })
+            return
+        };
+
+        var salt = await bcrypt.genSalt(10);
+        password = await bcrypt.hash(requestBody.password, salt)
+        console.log(password)
+        requestBody.password = password;
+    }
+    if (profileImage && profileImage.length > 0) {
+        var uploadedFileURL = await upload.uploadFile(profileImage[0]);
+        console.log(uploadedFileURL)
+        requestBody.profileImage = uploadedFileURL
+    };
+
+    //
+    if (requestBody.address) {
+        requestBody.address = JSON.parse(requestBody.address)
+        if (requestBody.address.shipping) {
+            if (requestBody.address.shipping.street) {
+                UserFound.address.shipping.street = requestBody.address.shipping.street
+                await UserFound.save()
+            }
+            if (requestBody.address.shipping.city) {
+                UserFound.address.shipping.city = requestBody.address.shipping.city
+                await UserFound.save()
+            }
+            if (requestBody.address.shipping.pincode) {
+                UserFound.address.shipping.pincode = requestBody.address.shipping.pincode
+                await UserFound.save()
+            }
+        }
+
+        if (requestBody.address.billing) {
+            if (requestBody.address.billing.street) {
+                UserFound.address.billing.street = requestBody.address.billing.street
+                await UserFound.save()
+            }
+            if (requestBody.address.billing.city) {
+                UserFound.address.billing.city = requestBody.address.billing.city
+                await UserFound.save()
+            }
+            if (requestBody.address.billing.pincode) {
+                UserFound.address.billing.pincode = requestBody.address.billing.pincode
+                await UserFound.save()
+            }
+        }
+    }
+    requestBody.UpdatedAt = new Date()
+    const UpdateData = { fname, profileImage: uploadedFileURL, lname, email, phone, password }
+    const upatedUser = await userModel.findOneAndUpdate({ _id: userId }, UpdateData, { new: true })
+    res.status(200).send({ status: true, message: 'User updated successfully', data: upatedUser });
+
+}
+
+
+    // const updateUserDetailes = async function (req, res) {
+    //     try {
+    //         const reqParams = req.params.userId;
+    //         const requestUpdateBody = req.body;
+    //         let files = req.files;
+    //         let userToken = req.userId;
+
+    //         if (!validate.isValidObjectId(reqParams)) {
+    //             return res
+    //                 .status(404)
+    //                 .send({ status: false, message: "Invalid userId." });
+    //         }
+
+    //         if (userToken !== reqParams) {
+    //             res.status(400).send({ status: false, message: "authorization failed!" });
+    //             return;
+    //         }
+
+    //         const searchUser = await userModel.findById({ _id: reqParams });
+    //         if (!searchUser) {
+    //             return res.status(404).send({
+    //                 status: false,
+    //                 message: `user does not exist by this ${reqParams}.`,
+    //             });
+    //         }
+
+    //         if (!validate.isValidRequestBody(requestUpdateBody)) {
+    //             return res.status(400).send({
+    //                 status: false,
+    //                 message: "Invalid request parameters. Please provide user details to update.",
+    //             });
+    //         }
+
+    //         const { fname, lname, email, profileImage, phone, password, address } =
+    //             requestUpdateBody;
+
+    //         // if (fname || lname || email || profileImage || phone || password || address) {
+    //         let updateData = {};
+    //         if (fname) {
+    //             if (!validate.isValid(fname)) {
+    //                 return res.status(400).send({
+    //                     status: false,
+    //                     message: "fname is required or check its key & value",
+    //                 });
+    //             }
+    //             updateData["fname"] = fname;
+    //         }
+
+    //         if (lname) {
+    //             if (!validate.isValid(lname)) {
+    //                 return res.status(400).send({
+    //                     status: false,
+    //                     message: "lname is required or check its key & value.",
+    //                 });
+    //             }
+    //             updateData["lname"] = lname;
+    //         }
+
+    //         if (email) {
+    //             if (!validate.isValid(email)) {
+    //                 return res.status(400).send({
+    //                     status: false,
+    //                     message: "email is required or check its key & value",
+    //                 });
+    //             }
+
+    //             if (!/^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/.test(email.trim())) {
+    //                 res
+    //                     .status(400)
+    //                     .send({ status: false, message: `${email} is not a valid email` });
+    //                 return;
+    //             }
+
+    //             const findEmail = await userModel.findOne({ email });
+    //             if (findEmail) {
+    //                 return res.status(403).send({
+    //                     status: false,
+    //                     message: `nothing to update ${email} is already in use.`,
+    //                 });
+    //             }
+    //             updateData["email"] = email;
+    //         }
+
+    //         // if (!validate.isValid(profileImage)) {
+    //         //     return res.status(400).send({ status: false, message: "profileImage is required or check its key & value." })
+    //         // };
+
+    //         if (phone) {
+    //             if (!validate.isValid(phone)) {
+    //                 return res.status(400).send({
+    //                     status: false,
+    //                     message: "phone is required or check its key & value.",
+    //                 });
+    //             }
+
+    //             if (!validate.isValidPhone(phone)) {
+    //                 return res.status(400).send({
+    //                     status: false,
+    //                     message: "phone is required or check its key & value.",
+    //                 });
+    //             }
+
+    //             const findPhone = await userModel.findOne({ phone });
+    //             if (findPhone) {
+    //                 return res.status(403).send({
+    //                     status: false,
+    //                     message: `nothing to update ${phone} is already in use.`,
+    //                 });
+    //             }
+
+    //             updateData["phone"] = phone;
+    //         }
+
+    //         if (password) {
+    //             if (!validate.isValid(password)) {
+    //                 return res.status(400).send({
+    //                     status: false,
+    //                     message: "password is required or check its key & value.",
+    //                 });
+    //             }
+    //             let encryptPass = await bcryptjs.hash(password, 10);
+    //             updateData["password"] = encryptPass;
+    //         }
+
+    //         if (address) {
+    //             if (!validate.isValid(address)) {
+    //                 return res.status(400).send({
+    //                     status: false,
+    //                     message: "address is required or check its key & value.",
+    //                 });
+    //             }
+    //             updateData["address"] = address;
+    //         }
+
+    //             if (files && files.length > 0) {
+    //                 let uploadedFileURL = await awsCon.uploadFile(files[0]);
+    //                 updateData["profileImage"] = uploadedFileURL;
+    //             }
+
+    //             const updateDetails = await userModel.findOneAndUpdate({ _id: reqParams },
+    //                 updateData, { new: true }
+    //             );
+
+    //             res.status(201).send({
+    //                 status: true,
+    //                 message: "Successfully updated User details.",
+    //                 data: updateDetails,
+    //             });
+
+    //     } catch (err) {
+    //         return res.status(500).send({
+    //             status: false,
+    //             message: "Something went wrong",
+    //             Error: err.message,
+    //         });
+    //     }
+    // };

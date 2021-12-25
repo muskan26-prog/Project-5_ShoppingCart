@@ -10,6 +10,10 @@ const isValidTitle = function (title) {
     return ['Mr', 'Mrs', 'Miss'].indexOf(title) !== -1
 }
 
+const isValidSize = function (title) {
+    return ["S", "XS", "M", "X", "L", "XXL", "XL"].indexOf(title) !== -1
+}
+
 let isValidObjectId = function (ObjectId) {
     return mongoose.Types.ObjectId.isValid(ObjectId)
 }
@@ -19,7 +23,6 @@ const isValidRequestBody = function (requestBody) {
 }
 
 let isValidPhone = function (str) {
-
     if (/^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/.test(str)) {
         return true
     }
@@ -32,7 +35,7 @@ let isValidEmail = function (email) {
     }
 }
 
-module.exports = { isValidTitle, isValidRequestBody, isValid, isValidPhone, isValidObjectId, isValidEmail }
+module.exports = { isValidTitle, isValidRequestBody, isValid, isValidPhone, isValidObjectId, isValidEmail, isValidSize }
 
 
 // if (/^(1\s|1|)?((\(\d{3}\))|\d{3})(\-|\s)?(\d{3})(\-|\s)?(\d{4})$/.test(str)) {
