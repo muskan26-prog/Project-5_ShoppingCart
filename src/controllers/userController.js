@@ -315,7 +315,7 @@ const updateUserDetailes = async (req, res) => {
         const requestBody = req.body;
         const profileImage = req.files        
         TokenDetail = req.userId        
-        if (!validator.isValidRequestBody(requestBody)) {
+        if (!validate.isValidRequestBody(requestBody)) {
             return res.status(400).send({ status: false, message: 'No paramateres passed. Book unmodified' })
         }
         const UserFound = await userModel.findOne({ _id: userId })
@@ -332,7 +332,7 @@ const updateUserDetailes = async (req, res) => {
                 res.status(400).send({ status: false, message: `${requestBody.fname} fname  is already exists` })
                 return
             }
-            if (!validator.isValid(fname)) {
+            if (!validate.isValid(fname)) {
                 return res.status(400).send({
                     status: false,
                     message: "fname is required or check its key & value",
@@ -345,7 +345,7 @@ const updateUserDetailes = async (req, res) => {
                 res.status(400).send({ status: false, message: `${requestBody.fname} lname is already registered` })
                 return
             }
-            if (!validator.isValid(lname)) {
+            if (!validate.isValid(lname)) {
                 return res.status(400).send({
                     status: false,
                     message: "lname is required or check its key & value.",
@@ -358,13 +358,13 @@ const updateUserDetailes = async (req, res) => {
                 res.status(400).send({ status: false, message: `${requestBody.phone} phone number is already registered` })
                 return
             }
-            if (!validator.isValid(phone)) {
+            if (!validate.isValid(phone)) {
                 return res.status(400).send({
                     status: false,
                     message: "phone is required or check its key & value.",
                 });
             }
-            if (!validator.isValidPhone(phone)) {
+            if (!validate.isValidPhone(phone)) {
                 res.status(400)
                     .send({ status: false, message: `${phone} is not a valid phone` });
                 return;
