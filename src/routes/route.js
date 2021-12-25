@@ -14,5 +14,6 @@ router.put('/user/:userId/profile',midvarify.varifyUser, userController.updateUs
 //product routes-------->
 router.post('/products',productController.releaseProduct )
 router.get('/products',productController.getProduct )
+router.get('/products/:productId',productController.getProductById )
 
 module.exports = router;

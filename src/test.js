@@ -303,3 +303,62 @@ const UpdateUser = async (req, res) => {
     //         });
     //     }
     // };
+
+
+
+
+    // const getProduct = async (req, res) => {
+//     try {
+
+//         let query = req.query;
+//         const { size, name, priceGreaterThan, priceLessThan } = query
+
+//         if (size || name || priceGreaterThan || priceLessThan) {
+//             let get = { isDeleted: false, deletedAt: null };
+
+//             if (size) {
+//                 get.availableSizes = size
+//             }
+//             if (name) {
+//                 // get.title = { $regex: '.' + name + '.' }
+//                 get.title = { $regex: '.*' + name + '.*' }
+//             }
+//             console.log(name)
+//             //console.log(get.title)
+//             if (priceGreaterThan) {
+//                 get.price = { $gt: priceGreaterThan }
+//                 //console.log(get.price)
+//             }
+//             if (priceLessThan) {
+//                 get.price = { $lt: priceLessThan }
+//                 //console.log(get.price)
+//             }
+//             console.log(get)
+//             if (priceGreaterThan && priceLessThan) {
+//                 get.price = { $gt: priceGreaterThan, $lt: priceLessThan }
+//                 // console.log(get.price)
+//             }
+
+
+//             // let productFound = await productModel.find(get)
+//             let productFound = await productModel.find(get).select({
+//                 _id: 1, title: 1, description: 1, price: 1, currencyId: 1, currencyFormat: 1, isFreeShipping: 1, productImage: 1, style: 1,
+//                 availableSizes: 1, installments: 1, deletedAt: 1, isDeleted: 1
+//             })
+
+
+//             if (!(productFound.length > 0)) {
+//                 return res.status(404).send({ status: false, message: "no such product found" });
+//             }
+
+//             return res.status(200).send({ status: true, message: 'Product list', data: productFound });
+
+//         } else {
+//             let Found = await productModel.find({ isDeleted: false })
+//             return res.status(200).send({ status: true, message: "Success", data: Found });
+//         }
+//     }
+//     catch (err) {
+//         return res.status(500).send({ status: false, msg: err.message });
+//     }
+// }

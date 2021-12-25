@@ -111,16 +111,18 @@ const getProduct = async function(req,res){
                 obj.price = { $lt: priceLessThan}
             }
             obj.isDeleted = false
+            obj.deletedAt = null
+
             console.log(obj)
             const getProductsList = await productModel.find(obj).sort({price : 1})
             // console.log(getProductsList)
             if(!getProductsList || getProductsList.length == 0){
-                res.status(400).send({status: false, message: `${title} is not available right now.`})
+                res.status(400).send({status: false, message: `product is not available right now.`})
             }else{
                 res.status(200).send({status: true, message:'Success', data: getProductsList})
             }
         }else{
-            const getListOfProducts = await productModel.find({isDeleted:false}).sort({price:1})
+            const getListOfProducts = await productModel.find({isDeleted:false, deletedAt: null}).sort({price:1})
             res.status(200).send({status: true, message:'Success', data: getListOfProducts })
         }
     }catch(err){
@@ -129,60 +131,33 @@ const getProduct = async function(req,res){
 
 }
 
-// const getProduct = async (req, res) => {
-//     try {
+//get product Delails by id localhost:3000/products/:productId
 
-//         let query = req.query;
-//         const { size, name, priceGreaterThan, priceLessThan } = query
+const getProductById = async function(req,res){
+    try{
+        let id = req.params.productId
 
-//         if (size || name || priceGreaterThan || priceLessThan) {
-//             let get = { isDeleted: false, deletedAt: null };
+        if (!validate.isValidObjectId(id)) {
+            res
+                .status(404)
+                .send({ status: false, message: `${id} is not valid user id ` });
+            return;
+        }
 
-//             if (size) {
-//                 get.availableSizes = size
-//             }
-//             if (name) {
-//                 // get.title = { $regex: '.' + name + '.' }
-//                 get.title = { $regex: '.*' + name + '.*' }
-//             }
-//             console.log(name)
-//             //console.log(get.title)
-//             if (priceGreaterThan) {
-//                 get.price = { $gt: priceGreaterThan }
-//                 //console.log(get.price)
-//             }
-//             if (priceLessThan) {
-//                 get.price = { $lt: priceLessThan }
-//                 //console.log(get.price)
-//             }
-//             console.log(get)
-//             if (priceGreaterThan && priceLessThan) {
-//                 get.price = { $gt: priceGreaterThan, $lt: priceLessThan }
-//                 // console.log(get.price)
-//             }
+        let findPro = await productModel.findOne({_id: id})
+        if(!findPro){
+            res.status(404).send({status: false, message: `product is not available with this ${id} id`})
+            return
+        }
 
+        let data = await productModel.find({_id: id, isDeleted: false, deletedAt: null})
+        if(!data){
+            res.status(400).send({status: false, message: "Product is not present with this ID. Please provide valid ID!!"})
+        }
+        res.status(200).send({status: true, message:"Success", data: data})
+    }catch(err){
+        res.status(500).send({status: false, message: err.message})
+    }
+}
 
-//             // let productFound = await productModel.find(get)
-//             let productFound = await productModel.find(get).select({
-//                 _id: 1, title: 1, description: 1, price: 1, currencyId: 1, currencyFormat: 1, isFreeShipping: 1, productImage: 1, style: 1,
-//                 availableSizes: 1, installments: 1, deletedAt: 1, isDeleted: 1
-//             })
-
-
-//             if (!(productFound.length > 0)) {
-//                 return res.status(404).send({ status: false, message: "no such product found" });
-//             }
-
-//             return res.status(200).send({ status: true, message: 'Product list', data: productFound });
-
-//         } else {
-//             let Found = await productModel.find({ isDeleted: false })
-//             return res.status(200).send({ status: true, message: "Success", data: Found });
-//         }
-//     }
-//     catch (err) {
-//         return res.status(500).send({ status: false, msg: err.message });
-//     }
-// }
-
-module.exports = { releaseProduct, getProduct }
+module.exports = { releaseProduct, getProduct, getProductById }
