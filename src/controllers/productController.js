@@ -50,10 +50,10 @@ let releaseProduct = async function (req, res) {
         //     return
         // }
 
-        // if (!validate.isValidSize(availableSizes)) {
-        //     res.status(400).send({ status: false, message: "size is required" })
-        //     return
-        // }
+        if (!validate.isValidSize(availableSizes)) {
+            res.status(400).send({ status: false, message: "size is required" })
+            return
+        }
 
         let findTitle = await productModel.findOne({ title })
         if (findTitle) {
@@ -168,7 +168,7 @@ const updateProduct = async function (req, res) {
         const productImage = req.files
 
         if (!validate.isValidRequestBody(requestBody)) {
-            return res.status(400).send({ status: false, message: 'No paramateres passed. Book unmodified' })
+            return res.status(400).send({ status: false, message: 'No paramateres passed. product unmodified' })
         }
 
         let productDetails = await productModel.findOne({ _id: req.params.productId })
