@@ -5,7 +5,7 @@ let jwt = require("jsonwebtoken");
 let awsCon = require("./awsController");
 const { varifyUser } = require("../middleware/verify");
 
-//!register user - localhost:3000/register ----------->
+//!register user - localhost:3000/register ----------------->
 let registerUser = async function (req, res) {
     try {
         let reqBody = req.body;
@@ -58,11 +58,7 @@ let registerUser = async function (req, res) {
         }
 
         //todo ----------------
-        // if (!validate.isValid(profileImage)) {
-        //     res.status(400).send({ status: false, message: "profileImage is mendatory" })
-        //     return
-        // }
-
+        
         if (!validate.isValid(phone)) {
             res
                 .status(400)
@@ -91,21 +87,21 @@ let registerUser = async function (req, res) {
             res.status(400).send({ status: false, message: "password is mendatory" });
             return;
         }
-
+        
         if (!(password.length >= 8) && password.length <= 15) {
             res
-                .status(400)
-                .send({ status: false, message: "password length must be 8 to 15" });
+            .status(400)
+            .send({ status: false, message: "password length must be 8 to 15" });
             return;
         }
-
+        
         if (!validate.isValid(address)) {
             res
-                .status(400)
-                .send({ status: false, message: "address field is required" });
+            .status(400)
+            .send({ status: false, message: "address field is required" });
             return;
         }
-
+        
         if (!validate.isValid(address.shipping)) {
             res.status(400).send({
                 status: false,
@@ -167,6 +163,11 @@ let registerUser = async function (req, res) {
             let uploadedFileURL = await awsCon.uploadFile(files[0]); // expect this function to take file as input and give url of uploaded file as output
             // reqBody.profileImage = uploadedFileURL;
             //pasword encryption-------->
+
+            // if (!validate.isValid(profileImage)) {
+            //     res.status(400).send({ status: false, message: "profileImage is mendatory" })
+            //     return
+            // }
             let encryptPass = await bcryptjs.hash(password, 10);
             let saveData = {
                 fname,
@@ -183,6 +184,8 @@ let registerUser = async function (req, res) {
                 message: "user successfully registerd",
                 data: createUser,
             });
+        } else {
+            res.status(400).send({status: false, message: "please select profile image"})
         }
     } catch (error) {
         res.status(500).send({ status: false, message: error.message });

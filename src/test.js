@@ -48,7 +48,6 @@ const updateUser = async (req, res) => {
 };
 
 
-
 const UpdateUser = async (req, res) => {
 
     userId = req.params.userId;
@@ -68,8 +67,6 @@ const UpdateUser = async (req, res) => {
     if (!TokenDetail === userId) {
         res.status(400).send({ status: false, message: "userId in url param and in token is not same" })
     }
-
-
 
     var { fname, lname, email, phone, password } = requestBody
 
