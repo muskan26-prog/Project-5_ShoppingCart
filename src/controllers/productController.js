@@ -17,7 +17,7 @@ let releaseProduct = async function (req, res) {
         let { title, description, price, currencyId, currencyFormat, productImage, style, availableSizes } = reqBody
 
         // let availSiz = JSON.parse(availableSizes)
-        console.log(typeof availableSizes)
+        // console.log(typeof availableSizes)
         if (!validate.isValid(title)) {
             res.status(400).send({ status: false, message: "enter valid title" })
             return
@@ -45,15 +45,16 @@ let releaseProduct = async function (req, res) {
 
         // a
 
-        // if (!validate.isValid(availableSizes)) {
-        //     res.status(400).send({ status: false, message: "size is required" })
-        //     return
-        // }
-
-        if (!validate.isValidSize(availableSizes)) {
+        if (!validate.isValid(availableSizes)) {
             res.status(400).send({ status: false, message: "size is required" })
             return
         }
+        
+        console.log(availableSizes)
+        // if (validate.isValidSize(availableSizes)) {
+        //     res.status(400).send({ status: false, message: "size is required2" })
+        //     return
+        // }
 
         let findTitle = await productModel.findOne({ title })
         if (findTitle) {
@@ -74,7 +75,7 @@ let releaseProduct = async function (req, res) {
                 productImage: uploadedFileURL,
                 style
             }
-            console.log(typeof availSiz)
+            // console.log(typeof availSiz)
 
             let createProduct = await productModel.create(saveProductData)
             res.status(200).send({ status: false, message: `product ${title} created successfully`, data: createProduct })
