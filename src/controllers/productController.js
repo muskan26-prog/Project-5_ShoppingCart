@@ -16,7 +16,7 @@ let releaseProduct = async function (req, res) {
 
         let { title, description, price, currencyId, currencyFormat, productImage, style, availableSizes } = reqBody
 
-        let availSiz = JSON.parse(availableSizes)
+        // let availSiz = JSON.parse(availableSizes)
         console.log(typeof availableSizes)
         if (!validate.isValid(title)) {
             res.status(400).send({ status: false, message: "enter valid title" })
@@ -50,10 +50,10 @@ let releaseProduct = async function (req, res) {
         //     return
         // }
 
-        if (!validate.isValidSize(availableSizes)) {
-            res.status(400).send({ status: false, message: "size is required" })
-            return
-        }
+        // if (!validate.isValidSize(availableSizes)) {
+        //     res.status(400).send({ status: false, message: "size is required" })
+        //     return
+        // }
 
         let findTitle = await productModel.findOne({ title })
         if (findTitle) {
@@ -70,7 +70,7 @@ let releaseProduct = async function (req, res) {
                 price,
                 currencyId,
                 currencyFormat,
-                availableSizes: availSiz,
+                availableSizes,
                 productImage: uploadedFileURL,
                 style
             }
@@ -222,7 +222,7 @@ const deleteproductByID = async (req, res) => {
         const params = req.params.productId;
 
         if (!validate.isValidObjectId(params)) {
-            return res.status(400).send({ status: false, message: "Inavlid bookId." })
+            return res.status(400).send({ status: false, message: "Inavlid productID." })
         }
 
         const findproduct = await productModel.findById({ _id: params })
